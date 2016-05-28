@@ -1,0 +1,10 @@
+build
+dist
+git_vendini.egg-info
+MANIFEST
+AUTHORS
+ChangeLog
+.eggs
+*.egg
+*.egg-info
+*.pyc

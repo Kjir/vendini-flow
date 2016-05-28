@@ -17,6 +17,7 @@ limitations under the License."""
 import argparse
 import os
 import pkg_resources
+import requests
 from sh import git
 import sys
 
@@ -29,6 +30,21 @@ def git_directories():
     """Determine (absolute git work directory path, .git subdirectory path)."""
     out = git("rev-parse", "--show-toplevel", "--git-dir")
     return out.splitlines()
+
+def subcommand_slack():
+    """Ask for a reviewer on Slack"""
+    token = git.config("vendini.slack.token").stdout.strip()
+    case = git("rev-parse", "--abbrev-ref", "HEAD")
+    text = 'Looking for reviewer: ' \
+            'https://vendini.atlassian.net/browse/%s' % case
+    response = requests.post("https://slack.com/api/chat.postMessage",
+            data={
+                'token': token.strip(),
+                'channel': 'code-reviews',
+                'as_user': True,
+                'text': text
+                })
+    print(response.text)
 
 def _main():
     usage = "git vendini [OPTIONS] ... [SUBCOMMAND]"
@@ -70,6 +86,9 @@ def _main():
         sys.exit(0)
 
     print("subcommand is %s" % options.subcommand)
+    subcommands = globals()
+    if 'subcommand_%s' % options.subcommand in subcommands:
+         subcommands['subcommand_%s' % options.subcommand]()
     sys.exit(0)
 
     global VERBOSE
